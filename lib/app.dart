@@ -8,9 +8,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-      title: 'E-Learning App',
+      title: 'E-Learning Application',
       theme: ThemeData(
-        primarySwatch: Colors.yellow
+        primarySwatch: Colors.blue
       ),
       home: const SplashScreen(),
       debugShowCheckedModeBanner: false,
