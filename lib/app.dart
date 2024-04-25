@@ -10,7 +10,7 @@ class MyApp extends StatelessWidget {
     return GetMaterialApp(
       title: 'E-Learning App',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.yellow
       ),
       home: const SplashScreen(),
       debugShowCheckedModeBanner: false,
