@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:phloem_app/model/course_model.dart';
 
 class CourseDetailsScreen extends StatelessWidget {
- final Course course;
+  final Course course;
 
- const CourseDetailsScreen({super.key, required this.course});
+  const CourseDetailsScreen({super.key, required this.course});
 
- @override
- Widget build(BuildContext context) {
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(course.name),
@@ -31,18 +31,35 @@ class CourseDetailsScreen extends StatelessWidget {
             const SizedBox(height: 30),
             const Text('Modules:', style: TextStyle(fontWeight: FontWeight.bold , fontSize: 18),),
             const SizedBox(height: 12),
-            ...course.modules.asMap().entries.expand((entry) {
-              return [
-                Text(
-                 '${entry.key + 1}. ${entry.value}',
-                 style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
-                ),
-                const SizedBox(height: 12),
-              ];
-            })
+            ...course.modules.asMap().entries.map((entry) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ExpansionTile(
+                    title: Text(
+                      '${entry.key + 1}. ${entry.value}',
+                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
+                    ),
+                    children: [
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 16.0),
+                          child: Text(
+                            course.descriptions[entry.key],
+                            style: const TextStyle(fontSize: 16, color: Colors.black54),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                ],
+              );
+            }),
           ],
         ),
       ),
     );
- }
+  }
 }
