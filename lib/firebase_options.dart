@@ -30,10 +30,7 @@ class DefaultFirebaseOptions {
           'you can reconfigure this by running the FlutterFire CLI again.',
         );
       case TargetPlatform.windows:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for windows - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return windows;
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
@@ -52,14 +49,16 @@ class DefaultFirebaseOptions {
     messagingSenderId: '763978404775',
     projectId: 'phloem-8a7f5',
     authDomain: 'phloem-8a7f5.firebaseapp.com',
+    databaseURL: 'https://phloem-8a7f5-default-rtdb.firebaseio.com',
     storageBucket: 'phloem-8a7f5.appspot.com',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyCLWyxMUnh2YCgZ5g9m42rdyLAUheyY708',
-    appId: '1:763978404775:android:9271dbafde50b5dd951c82',
+    appId: '1:763978404775:android:d4ab60de5442c87c951c82',
     messagingSenderId: '763978404775',
     projectId: 'phloem-8a7f5',
+    databaseURL: 'https://phloem-8a7f5-default-rtdb.firebaseio.com',
     storageBucket: 'phloem-8a7f5.appspot.com',
   );
 
@@ -68,9 +67,21 @@ class DefaultFirebaseOptions {
     appId: '1:763978404775:ios:d8ff3ade6364a45f951c82',
     messagingSenderId: '763978404775',
     projectId: 'phloem-8a7f5',
+    databaseURL: 'https://phloem-8a7f5-default-rtdb.firebaseio.com',
     storageBucket: 'phloem-8a7f5.appspot.com',
-    androidClientId: '763978404775-imoa25049e4nj3ef9r96gj4rb9rtm8a1.apps.googleusercontent.com',
+    androidClientId: '763978404775-ffdpcbep1jrbkrqqu2lk3kcb546bpjjq.apps.googleusercontent.com',
     iosClientId: '763978404775-bd2ahd448e32dui0k75ngnrtqdtlefe1.apps.googleusercontent.com',
     iosBundleId: 'com.example.phloemApp',
   );
+
+  static const FirebaseOptions windows = FirebaseOptions(
+    apiKey: 'AIzaSyCXUbPyaAvF1IM3-6j2NEP-8Cjj6YAGj2o',
+    appId: '1:763978404775:web:4301ec2c61df01c8951c82',
+    messagingSenderId: '763978404775',
+    projectId: 'phloem-8a7f5',
+    authDomain: 'phloem-8a7f5.firebaseapp.com',
+    databaseURL: 'https://phloem-8a7f5-default-rtdb.firebaseio.com',
+    storageBucket: 'phloem-8a7f5.appspot.com',
+  );
+
 }

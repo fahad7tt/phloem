@@ -6,10 +6,12 @@ import 'package:phloem_app/model/users_model.dart';
 import 'package:phloem_app/view/screens/home/home.dart';
 
 class SignInController extends GetxController {
+  static String? mentorEmail = FirebaseAuth.instance.currentUser!.email;
   final formKey = GlobalKey<FormState>();
+  final nameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
-  final signInModel = UserModel(email: '', password: '');
+  final signInModel = UserModel(userName: '', email: '', password: '');
 
   Future<void> signIn() async {
     if (formKey.currentState!.validate()) {
@@ -28,14 +30,31 @@ class SignInController extends GetxController {
             .doc(userCredential.user!.uid)
             .get();
 
-        // Do something with the user data, e.g., store in a controller
-        final userData = userSnapshot.data();
-        // print the user data
-        // ignore: avoid_print
-        print('User Data: $userData');
+            // Check if user data exists, if not create a new document
+        if (!userSnapshot.exists) {
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(userCredential.user!.uid)
+              .set({
+            'username': nameController.text.trim(),
+            'email': emailController.text.trim(),
+          });
+        }
+
+        // Retrieve updated user data
+        final userData = userSnapshot.data() ?? {
+          'username': nameController.text.trim(),
+          'email': emailController.text.trim(),
+        };
+
+        // Create a UserModel instance
+        UserModel user = UserModel(
+          userName: userData['username'],
+          email: userData['email'],
+        );
 
         // Navigate to the home page after successful sign-in
-        Get.offAll(const HomePage());
+        Get.offAll(HomePage(user: user));
       } catch (error) {
         // Handle sign-in error
         // ignore: avoid_print
@@ -52,6 +71,7 @@ class SignInController extends GetxController {
 
   @override
   void onClose() {
+    nameController.dispose();
     emailController.dispose();
     passwordController.dispose();
     super.onClose();

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:phloem_app/controller/signin_controller.dart';
+import 'package:phloem_app/model/users_model.dart';
 import 'package:phloem_app/repository/authentication_repository.dart';
 import 'package:phloem_app/view/screens/home/home.dart';
 import 'package:phloem_app/view/screens/sign%20up/sign_up.dart';
@@ -51,16 +52,19 @@ class SignInPage extends StatelessWidget {
                           .signInWithGoogle()
                           .then((userCredential) {
                         //sign-in success
-                        final email = userCredential.user!.email;
+                        final user = UserModel(
+                          userName: userCredential.user!.displayName ?? '',
+                          email: userCredential.user!.email ?? '',                          
+                        );
                         //Snackbar with the email used for authentication
                         Get.snackbar(
                           'Successfully signed in',
-                          'Signed in with $email',
+                          'Signed in with ${user.email}',
                           snackPosition: SnackPosition.BOTTOM,
                         );
                         //navigate to the home page after successful sign-in
                         Get.offAll(
-                            const HomePage()); 
+                            HomePage(user: user)); 
                       }).catchError((error) {
                         //sign-in error
                         // ignore: avoid_print

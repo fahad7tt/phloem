@@ -1,9 +1,7 @@
 // ignore_for_file: avoid_print, duplicate_ignore
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:phloem_app/controller/signup_controller.dart';
-import 'package:phloem_app/model/users_model.dart';
 import 'package:phloem_app/view/screens/sign%20in/sign_in.dart';
 
 class SignUpPage extends StatelessWidget {
@@ -34,6 +32,8 @@ class SignUpPage extends StatelessWidget {
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 20),
+                  _buildNameTextField(controller),
+                  const SizedBox(height: 20),
                   _buildEmailTextField(controller),
                   const SizedBox(height: 20),
                   _buildPasswordTextField(controller),
@@ -43,7 +43,6 @@ class SignUpPage extends StatelessWidget {
                   ElevatedButton(
                     onPressed: () {
                       controller.signUp();
-                      _saveUserDataToFirestore(controller.signUpModel);
                     },
                     child: const Text('Sign Up'),
                   ),
@@ -72,6 +71,24 @@ class SignUpPage extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildNameTextField(SignUpController controller) {
+    return TextFormField(
+      controller: controller.nameController,
+      decoration: const InputDecoration(labelText: 'Name'),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please enter a valid name';
+        } else if (!RegExp(r'^[a-zA-Z]+$').hasMatch(value)) {
+          return 'Name can only contain alphabets';
+        } else if (value.length > 20) {
+          return 'Name must not exceed 20 characters';
+        }
+        return null;
+      },
+      onSaved: (value) => controller.signUpModel.userName = value!,
     );
   }
 
@@ -152,19 +169,5 @@ class SignUpPage extends StatelessWidget {
       },
       onSaved: (value) => controller.signUpModel.password = value!,
     );
-  }
-
-  void _saveUserDataToFirestore(UserModel userModel) {
-    //save user data to Firestore
-    FirebaseFirestore.instance.collection('users').doc(userModel.email).set({
-      'email': userModel.email,
-      'password': userModel.password,
-    }).then((_) {
-      print('User data saved to Firestore');
-    }).catchError((error) {
-      print('Failed to save user data: $error');
-    });
-    // ignore: avoid_print
-    print('User data saved to Firestore');
   }
 }

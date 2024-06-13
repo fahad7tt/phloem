@@ -7,8 +7,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SignUpController extends GetxController {
   final formKey = GlobalKey<FormState>();
-  final signUpModel = UserModel(email: '', password: '');
-
+  final signUpModel = UserModel(userName: '', email: '', password: '');
+  final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController = TextEditingController();
@@ -26,6 +26,7 @@ class SignUpController extends GetxController {
 
         // Save user data to Firestore
         await FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).set({
+          'username': nameController.text.trim(),
           'email': emailController.text.trim(),
           'password' : passwordController.text.trim(),
         });
@@ -47,6 +48,7 @@ class SignUpController extends GetxController {
 
   @override
   void onClose() {
+    nameController.dispose();
     emailController.dispose();
     passwordController.dispose();
     confirmPasswordController.dispose();

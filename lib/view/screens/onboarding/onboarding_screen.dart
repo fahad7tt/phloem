@@ -20,28 +20,30 @@ class OnboardingScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        Container(
-          padding: const EdgeInsets.all(80),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.asset(
-                imagePath,
-                width: 200,
-                height: 200,
-              ),
-              const SizedBox(height: 20),
-              Text(
-                title,
-                style:
-                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                subtitle,
-                style: const TextStyle(fontSize: 14),
-              ),
-            ],
+        SingleChildScrollView(
+          child: Container(
+            padding: const EdgeInsets.all(80),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset(
+                  imagePath,
+                  width: 200,
+                  height: 380,
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  title,
+                  style:
+                      const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  subtitle,
+                  style: const TextStyle(fontSize: 14),
+                ),
+              ],
+            ),
           ),
         ),
         if (showSkipButton) ...[

@@ -1,10 +1,13 @@
  // ignore_for_file: avoid_print
+import 'dart:developer';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:phloem_app/model/course_model.dart';
 import 'package:phloem_app/model/mentor_model.dart';
+import 'package:phloem_app/model/users_model.dart';
 
 class MentorProvider with ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -14,6 +17,11 @@ class MentorProvider with ChangeNotifier {
   String? _selectedCourse;
   final List<String> _selectedCourseModules = [];
   File? _selectedImage;
+  var enrolledCourses = <Course>[].obs;  // RxList to observe changes
+  var isLoadingState = false.obs; // Observable for loading state
+
+  bool isEdit = false;
+  bool isSameCourse = false;
 
    String? get selectedCourse => _selectedCourse;
   List<String> get selectedCourseModules => _selectedCourseModules;
@@ -22,13 +30,127 @@ class MentorProvider with ChangeNotifier {
   List<String> get selectedModules => _selectedModules;
   File? get selectedImage => _selectedImage;
 
+  bool _isLoading = false;
+
+  bool get isLoading => _isLoading;
+
+  void setLoading(bool loading) {
+    _isLoading = loading;
+    notifyListeners();
+  }
+
+  Future<String?> getMentorName(String email) async {
+    try {
+      QuerySnapshot querySnapshot = await _firestore.collection('mentors').where('email', isEqualTo: email).get();
+      if (querySnapshot.docs.isNotEmpty) {
+        return querySnapshot.docs.first['name'];
+      }
+      return null;
+    } catch (e) {
+      print('Error fetching mentor name: $e');
+      return null;
+    }
+  }
+
+  Future<void> enrollCourse(Course course, UserModel user) async {
+  try {
+    // notifyListeners();
+
+    // Store the enrolled course data in Firestore
+    await _firestore.collection('enrolledCourses').doc(user.email).collection('courses').doc(course.id).set({
+      'name': course.name,
+      'modules': course.modules,
+      'payment': course.payment,
+      'descriptions': course.descriptions,
+      'amount': course.amount,
+    });
+        enrolledCourses.add(course);
+
+        DocumentReference docRef = _firestore.collection('courses').doc(course.id);
+
+        DocumentSnapshot docSnapshot = await docRef.get();
+        if(docSnapshot.exists){
+          List<dynamic> currentList = docSnapshot.get('enrolledUsers');
+          currentList.add(user.userName);
+
+          await docRef.update({
+            'enrolledUsers' : currentList
+          });
+        }
+  } catch (e) {
+    print('Error enrolling in course: $e');
+  }
+}
+
+Future<void> fetchEnrolledCourses(UserModel user) async {
+  isLoadingState.value = true; // Set loading to true
+  try {
+    // Clear the local list of enrolled courses
+    enrolledCourses.clear();
+
+    // Fetch the enrolled courses from Firestore
+    QuerySnapshot querySnapshot = await _firestore
+        .collection('enrolledCourses')
+        .doc(user.email)
+        .collection('courses')
+        .get();
+
+    // Add the fetched courses to the local list
+     for (QueryDocumentSnapshot doc in querySnapshot.docs) {
+      Map<String, dynamic>? data = doc.data() as Map<String, dynamic>?;
+      if (data != null) {
+        enrolledCourses.add(
+          Course(
+            id: doc.id,
+            name: data['name'] ?? '',
+            modules: List<String>.from(data['modules'] ?? []),
+            payment: data['payment'] ?? '',
+            descriptions: List<String>.from(data['descriptions'] ?? []),
+            amount: data['amount'] ?? '',
+            enrolledUsers: List<String>.from(data['enrolledUsers'] ?? []),
+          ),
+        );
+      }
+    }
+  } catch (e) {
+    print('Error fetching enrolled courses: $e');
+  }  finally {
+      isLoadingState.value = false; // Set loading to false
+    }
+}
+
+ Future<void> deleteEnrolledCourse(UserModel user, Course course) async {
+    try {
+      // Remove the course from Firestore
+      await _firestore
+          .collection('enrolledCourses')
+          .doc(user.email)
+          .collection('courses')
+          .doc(course.id)
+          .delete();
+
+      // Remove the course from the local list
+      enrolledCourses.remove(course);
+    } catch (e) {
+      print('Error deleting enrolled course: $e');
+    }
+  }
+  
   // Method to toggle selected modules
   void toggleSelectedModule(String module) {
+    log(module);
+    log("===-=-=-=-=-=-=$_selectedModules");
+if(!isSameCourse)
+{
+  _selectedModules.clear();
+    isSameCourse = true;
+}
     if (_selectedModules.contains(module)) {
       _selectedModules.remove(module);
     } else {
       _selectedModules.add(module);
     }
+    log("----------- ----$_selectedModules");
     notifyListeners();
   }
 
@@ -61,16 +183,24 @@ class MentorProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void setSelectedCourse(String courseName, List<String> modules) {
+  void setSelectedCourse(String courseName, List<dynamic> modules) {
+    print('i am in set selected couuse ');
+    print(courseName);
+    print(modules);
     _selectedCourse = courseName;
     _selectedCourseModules.clear();
-  _selectedCourseModules.addAll(modules);
+    for(int i=0;i<modules.length;i++)
+    {
+      _selectedCourseModules.add(modules[i].toString()); 
+    }
+  // _selectedCourseModules.addAll(modules as List<String>);
     notifyListeners();
   }
 
-  void setSelectedModules(List<String> modules) {
-  _selectedModules.clear();
-  _selectedModules.addAll(modules);
+  void setSelectedModules(List<String> modules)  {
+    // log("----${modules}");
+  _selectedCourseModules.clear();
+  _selectedCourseModules.addAll(modules);
   notifyListeners();
 }
 
@@ -119,7 +249,6 @@ class MentorProvider with ChangeNotifier {
   Future<void> addMentorToFirestore(Mentor mentor) async {
     if (await isEmailUnique(mentor.email)) {
       try {
-
         await _firestore.collection('mentors').doc(mentor.id).set({
           'name': mentor.name,
           'email': mentor.email,
@@ -168,6 +297,17 @@ class MentorProvider with ChangeNotifier {
 //     print('Error updating mentor modules in Firestore: $error');
 //   }
 // }
+
+Future<List<Mentor>> fetchMentors() async {
+  try {
+    QuerySnapshot querySnapshot = await _firestore.collection('mentors').get();
+    List<Mentor> mentors = querySnapshot.docs.map((doc) => Mentor.fromSnapshot(doc)).toList();
+    return mentors;
+  } catch (e) {
+    print('Error fetching mentors: $e');
+    return [];
+  }
+}
 
   Future<List<Course>> fetchCourses() async {
     try {
